@@ -1,4 +1,4 @@
-name: Build Kivy APK
+name: Build APK
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository
+      # 1️⃣ Checkout repo
       - name: Checkout repo
         uses: actions/checkout@v3
 
@@ -18,36 +18,15 @@ jobs:
         with:
           python-version: '3.10'
 
-      # 3️⃣ Cache pip packages
-      - name: Cache pip
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      # 4️⃣ Install system dependencies
-      - name: Install system dependencies
+      # 3️⃣ Install system dependencies
+      - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y python3-pip build-essential git zip unzip openjdk-17-jdk wget curl
-          pip install --upgrade pip
           pip install buildozer cython virtualenv
 
-      # 5️⃣ Cache Buildozer folders
-      - name: Cache Buildozer
-        uses: actions/cache@v3
-        with:
-          path: |
-            ./.buildozer
-            ~/.buildozer
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('**/*.spec') }}
-          restore-keys: |
-            ${{ runner.os }}-buildozer-
-
-      # 6️⃣ Install Android SDK Command-line Tools
-      - name: Install Android SDK Command-line Tools
+      # 4️⃣ Install Android SDK command-line tools
+      - name: Install Android SDK Tools
         run: |
           mkdir -p $HOME/android-sdk/cmdline-tools
           cd $HOME/android-sdk/cmdline-tools
@@ -58,22 +37,24 @@ jobs:
           echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
 
-      # 7️⃣ Accept Android SDK licenses
+      # 5️⃣ Install SDK platforms and build-tools
+      - name: Install SDK Platforms & Build-Tools
+        run: |
+          yes | sdkmanager "platform-tools" "platforms;android-34" "build-tools;36.1.0"
+
+      # 6️⃣ Accept all licenses
       - name: Accept Android SDK Licenses
         run: |
-          mkdir -p $HOME/android-sdk/licenses
-          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > $HOME/android-sdk/licenses/android-sdk-license
-          echo "84831b9409646a918e30573bab4c9c91346d8abd" > $HOME/android-sdk/licenses/android-sdk-preview-license
           yes | sdkmanager --licenses || true
 
-      # 8️⃣ Build APK using Buildozer
+      # 7️⃣ Build APK
       - name: Build APK
         run: |
           buildozer android debug --verbose --ignore-setup-check --distribution-dir=dist
 
-      # 9️⃣ Upload APK artifact
+      # 8️⃣ Upload APK artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: UsernameRunner-APK
+          name: UsernameApp-APK
           path: ./dist/*.apk
