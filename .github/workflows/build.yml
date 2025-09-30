@@ -37,4 +37,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: UsernameApp-APK
-          path: **/*.apk
+          path: ./.buildozer/android/platform/build/dists/usernamerunner/bin/*.apk
