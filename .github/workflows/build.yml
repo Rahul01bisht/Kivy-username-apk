@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Kivy APK
 
 on:
   workflow_dispatch:
@@ -16,7 +16,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.10  # ✅ fixed, no typo
+          python-version: 3.10
 
       # 3️⃣ Cache pip packages
       - name: Cache pip
@@ -35,7 +35,7 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython virtualenv
 
-      # 5️⃣ Cache Buildozer
+      # 5️⃣ Cache Buildozer folders
       - name: Cache Buildozer
         uses: actions/cache@v3
         with:
@@ -75,5 +75,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: MyApp-APK
+          name: UsernameRunner-APK
           path: ./dist/*.apk
