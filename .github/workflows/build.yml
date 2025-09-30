@@ -35,10 +35,12 @@ jobs:
           echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
 
       - name: Accept Android SDK Licenses
-        run: yes | sdkmanager --licenses
+        run: |
+          yes | sdkmanager --licenses
 
       - name: Build APK
-        run: buildozer android debug --verbose
+        run: |
+          buildozer android debug --verbose
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
