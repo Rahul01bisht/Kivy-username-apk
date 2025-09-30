@@ -22,6 +22,10 @@ jobs:
           sudo apt install -y python3-pip build-essential git zip unzip openjdk-17-jdk
           pip install buildozer cython virtualenv
 
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | sdkmanager --licenses || true
+
       - name: Build APK
         run: |
           buildozer android debug
@@ -31,4 +35,3 @@ jobs:
         with:
           name: UsernameApp-APK
           path: bin/*.apk
-          
