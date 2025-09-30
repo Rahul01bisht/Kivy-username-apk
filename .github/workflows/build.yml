@@ -9,10 +9,10 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.10]  # future me multiple versions test karne ke liye
+        python-version: [3.10]  # Add more versions if needed
 
     steps:
-      # 1️⃣ Checkout repo
+      # 1️⃣ Checkout repository
       - name: Checkout repo
         uses: actions/checkout@v3
 
@@ -39,7 +39,7 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython virtualenv
 
-      # 5️⃣ Cache Buildozer folder
+      # 5️⃣ Cache Buildozer
       - name: Cache Buildozer
         uses: actions/cache@v3
         with:
@@ -62,21 +62,22 @@ jobs:
           echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
 
-      # 7️⃣ Pre-accept Android SDK licenses
+      # 7️⃣ Accept Android SDK licenses
       - name: Accept Android SDK Licenses
         run: |
           mkdir -p $HOME/android-sdk/licenses
           echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > $HOME/android-sdk/licenses/android-sdk-license
           echo "84831b9409646a918e30573bab4c9c91346d8abd" > $HOME/android-sdk/licenses/android-sdk-preview-license
-          yes | sdkmanager --licenses
+          yes | sdkmanager --licenses || true
 
-      # 8️⃣ Build APK using Buildozer (custom dist folder)
+      # 8️⃣ Build APK using Buildozer
       - name: Build APK
-        run: buildozer android debug --verbose --ignore-setup-check --distribution-dir=dist
+        run: |
+          buildozer android debug --verbose --ignore-setup-check --distribution-dir=dist
 
       # 9️⃣ Upload APK artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: UsernameApp-APK
+          name: MyApp-APK
           path: ./dist/*.apk
