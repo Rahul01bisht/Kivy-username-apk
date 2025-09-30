@@ -7,15 +7,31 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        python-version: [3.10]  # future me multiple versions test karne ke liye
+
     steps:
+      # 1️⃣ Checkout repo
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      # 2️⃣ Set up Python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: ${{ matrix.python-version }}
 
+      # 3️⃣ Cache pip packages
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # 4️⃣ Install system dependencies
       - name: Install system dependencies
         run: |
           sudo apt update
@@ -23,6 +39,18 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython virtualenv
 
+      # 5️⃣ Cache Buildozer folder
+      - name: Cache Buildozer
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./.buildozer
+            ~/.buildozer
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('**/*.spec') }}
+          restore-keys: |
+            ${{ runner.os }}-buildozer-
+
+      # 6️⃣ Install Android SDK Command-line Tools
       - name: Install Android SDK Command-line Tools
         run: |
           mkdir -p $HOME/android-sdk/cmdline-tools
@@ -34,6 +62,7 @@ jobs:
           echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
 
+      # 7️⃣ Pre-accept Android SDK licenses
       - name: Accept Android SDK Licenses
         run: |
           mkdir -p $HOME/android-sdk/licenses
@@ -41,12 +70,13 @@ jobs:
           echo "84831b9409646a918e30573bab4c9c91346d8abd" > $HOME/android-sdk/licenses/android-sdk-preview-license
           yes | sdkmanager --licenses
 
+      # 8️⃣ Build APK using Buildozer (custom dist folder)
       - name: Build APK
-        run: |
-          buildozer android debug --verbose --ignore-setup-check
+        run: buildozer android debug --verbose --ignore-setup-check --distribution-dir=dist
 
+      # 9️⃣ Upload APK artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: UsernameApp-APK
-          path: ./.buildozer/android/platform/build/dists/usernamerunner/bin/*.apk
+          path: ./dist/*.apk
